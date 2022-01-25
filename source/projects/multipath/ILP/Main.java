@@ -137,8 +137,8 @@ public class Main {
 			System.out.println("gap=" + gap);
 			int time = Integer.parseInt(argv[2]);
 			if (shouldSplit) {
-				int split = 3; // obs > 20 ? 3 : 2;
-				// TODO refine the split and gap
+				int split = argv.length > 4 ? Integer.parseInt(argv[4]) : 3; // obs > 20 ? 3 : 2;
+				// TODO refine the split and gap?
 				solveProblemDistanceSplit(p, gap, time, split);
 			}
 			else {
