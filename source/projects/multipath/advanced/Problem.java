@@ -8,9 +8,19 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Set;
+import java.util.Vector;
+import java.awt.geom.Point2D;
+import javafx.util.Pair;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 public class Problem implements Serializable {
 	private static String FILE_FOLDER = "D:\\temp\\data\\dmrpp\\"; 
@@ -94,6 +104,59 @@ public class Problem implements Serializable {
 		}
 	}
 	
+	public static Pair<Problem, Double> readFromJsonFile(String fileName){
+		
+		Problem p = new Problem();
+		double percentObstacle = 0;
+		Gson gson = new Gson();
+
+		try {
+			Reader reader = Files.newBufferedReader(Paths.get(fileName));
+			JsonObject instance = gson.fromJson(reader, JsonObject.class);
+
+			reader.close();
+
+			JsonObject meta = instance.getAsJsonObject("meta");
+			int number_of_robots = meta.getAsJsonPrimitive("number_of_robots").getAsInt();
+			JsonArray shape = meta.getAsJsonObject("description")
+								.getAsJsonObject("parameters")
+								.getAsJsonArray("shape");
+			int rows = shape.get(0).getAsInt();
+			int cols = shape.get(1).getAsInt();
+
+			Vector<Point2D> obstacles = new Vector<>();
+			for (JsonElement obstacleElement : instance.getAsJsonArray("obstacles")) {
+				JsonArray obstacleArray = obstacleElement.getAsJsonArray();
+				Point2D obstaclePoint = new Point2D.Double(obstacleArray.get(0).getAsInt(), 
+														   obstacleArray.get(1).getAsInt());
+				obstacles.add(obstaclePoint);
+			}
+			
+			p.graph = Graph.createGeneric2DGridGraphWithHoles(rows, cols, obstacles);
+			percentObstacle = (double)obstacles.size() / (rows*cols);
+			
+			p.sg = new int[2][number_of_robots];
+			JsonArray starts = instance.getAsJsonArray("starts");
+			JsonArray targets = instance.getAsJsonArray("targets");
+			for (int i = 0; i < number_of_robots; i++) {
+				JsonArray startArray = starts.get(i).getAsJsonArray();
+				p.sg[0][i] = p.graph.getId(startArray.get(0).getAsInt(), startArray.get(1).getAsInt());
+				JsonArray targetArray = targets.get(i).getAsJsonArray();
+				p.sg[1][i] = p.graph.getId(targetArray.get(0).getAsInt(), targetArray.get(1).getAsInt());
+			}
+
+			p.graph = Graph.convertGraph(p.graph, p.sg[0], p.sg[1]);
+		}
+		catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		// probably should've encapsulated the double inside p or p.graph, 
+		// but this would require a lot of changes to keep consistency
+		// or some deriving class  
+		return new Pair<Problem, Double>(p, percentObstacle);
+	}
+
 	public static Problem readFromFile(String fileName){
 		ObjectInputStream in;
 		Problem p = new Problem();

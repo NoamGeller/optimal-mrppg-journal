@@ -4,13 +4,14 @@ import java.io.FileWriter;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javafx.util.Pair;
 import projects.multipath.advanced.Graph;
 import projects.multipath.advanced.Path;
 import projects.multipath.advanced.Problem;
 
 public class Main {
 
-	static String basePath = "D:/temp/data/dmrpp/"; 
+	static String basePath = "./"; 
 
 	public static void main(String argv[]) {
 		int option = (argv.length == 0)?1:Integer.parseInt(argv[0]);
@@ -27,7 +28,7 @@ public class Main {
 			//run24x18PerformanceMetricTotalTime();
 			//run24x18PerformanceMetricTotalDistanceSplit();
 			run24x18PerformanceMetricTotalTimeFixedTime();
-			
+
 			//run24x18PerformanceMetricTotalDistanceSplitFixedTime();
 			break;
 		case 1:
@@ -118,6 +119,33 @@ public class Main {
 			solveProblem(p, true, -1);
 			
 			// solveProblemSuboptimal(p, false, true, 0, 100, 2, false);
+			break;
+		case 7:
+			boolean shouldSplit = argv.length > 3 && argv[3].equals("1");
+			System.out.println("Solving problem from json file: " + argv[1] 
+								+ " with " + argv[2] + " seconds limit"
+								+ (shouldSplit ? " and split heuristic" : "") 
+								+ ".\n");
+			Pair<Problem, Double> problemAndObs = Problem.readFromJsonFile(argv[1]);
+			p = problemAndObs.getKey();
+			double obs = problemAndObs.getValue();
+			PathPlanner.printStartAndGoals(p.graph, p.sg[0], p.sg[1]);
+			System.out.println("\n");
+			
+			int n = p.sg[0].length;
+			double gap = 0.0001;
+			System.out.println("gap=" + gap);
+			int time = Integer.parseInt(argv[2]);
+			if (shouldSplit) {
+				int split = 3; // obs > 20 ? 3 : 2;
+				// TODO refine the split and gap
+				solveProblemDistanceSplit(p, gap, time, split);
+			}
+			else {
+				solveProblemDistance(p, gap, time);
+			}
+			
+			System.out.println("\n");
 			break;
 		}
 	}
@@ -266,6 +294,8 @@ public class Main {
 			if(cycles > 0){
 				System.out.println("\nThere are " + cycles + " cycles in the result paths");
 			}
+			PathPlanner.printPaths(p.graph, paths);
+			System.out.println("makespan=" + (paths[0].length - 1));
 			return new long[]{PathFinder.getTotalDistance(paths), time, PathFinder.getTotalDistance(paths), ttLB};
 		}
 		else{
@@ -287,6 +317,7 @@ public class Main {
 				System.out.println("\nThere are " + cycles + " cycles in the result paths");
 			}
 			PathPlanner.printPaths(p.graph, paths);
+			System.out.println("makespan=" + (paths[0].length - 1));
 			return new long[]{PathFinder.getTotalDistance(paths), time, PathFinder.getTotalDistance(paths), ttLB};
 		}
 		else{

@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.Vector;
 
 public class Graph implements Serializable{
 	private static final long serialVersionUID = 1L;
@@ -201,6 +202,27 @@ public class Graph implements Serializable{
 		return g;
 	}
 	
+		/**
+	 * Create a grid with some obstacle vertices removed. 
+	 * @param rows
+	 * @param cols
+	 * @param obstacles
+	 * @return
+	 */
+	public static Graph createGeneric2DGridGraphWithHoles(int rows, int cols, Vector<Point2D> obstacles){
+		Graph g = Graph.create2DGridGraph(rows, cols, false);
+		for (Point2D obstacle : obstacles) {
+			int xToRemove =  (int)obstacle.getX();
+			int yToRemove =  (int)obstacle.getY();
+			int vId = g.getId(xToRemove, yToRemove);
+			if(g.idVertexMap.containsKey(vId)){
+				g.removeVertex(xToRemove, yToRemove);
+			}
+		}
+		g.vertices = g.verticeSet.toArray(new Vertex[0]);
+		return g;
+	}
+
 	/**
 	 * Randomly pick some start and goal locations. This function works well only when number is
 	 * relatively small compared to the number of vertices. 
@@ -455,8 +477,8 @@ public class Graph implements Serializable{
 	}
 	
 	
-	private int getId(int x, int y){
-		return y*columns + x + 1;
+	public int getId(int x, int y){
+		return y*columns + x;
 	}
 	
 	public static void updateAdjList(Graph g){
