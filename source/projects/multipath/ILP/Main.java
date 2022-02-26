@@ -3,8 +3,8 @@ package projects.multipath.ILP;
 import java.io.FileWriter;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.Map.Entry;
 
-import javafx.util.Pair;
 import projects.multipath.advanced.Graph;
 import projects.multipath.advanced.Path;
 import projects.multipath.advanced.Problem;
@@ -126,22 +126,24 @@ public class Main {
 								+ " with " + argv[2] + " seconds limit"
 								+ (shouldSplit ? " and split heuristic" : "") 
 								+ ".\n");
-			Pair<Problem, Double> problemAndObs = Problem.readFromJsonFile(argv[1]);
+			Entry<Problem, Double> problemAndObs = Problem.readFromJsonFile(argv[1]);
 			p = problemAndObs.getKey();
 			double obs = problemAndObs.getValue();
 			PathPlanner.printStartAndGoals(p.graph, p.sg[0], p.sg[1]);
 			System.out.println("\n");
 			
 			int n = p.sg[0].length;
-			double gap = 0.0001;
-			System.out.println("gap=" + gap);
 			int time = Integer.parseInt(argv[2]);
 			if (shouldSplit) {
+				double gap = argv.length > 5 ? Double.parseDouble(argv[5]) : n*0.001 + obs*0.0025 + (n > 70 ? n*0.001 : 0);
+				System.out.println("gap=" + gap);
 				int split = argv.length > 4 ? Integer.parseInt(argv[4]) : 3; // obs > 20 ? 3 : 2;
 				// TODO refine the split and gap?
 				solveProblemDistanceSplit(p, gap, time, split);
 			}
 			else {
+				double gap = argv.length > 5 ? Double.parseDouble(argv[5]) : n*0.002 + obs*0.002;
+				System.out.println("gap=" + gap);
 				solveProblemDistance(p, gap, time);
 			}
 			

@@ -12,11 +12,12 @@ import java.io.Reader;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.AbstractMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+import java.util.Map.Entry;
 import java.awt.geom.Point2D;
-import javafx.util.Pair;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -104,7 +105,7 @@ public class Problem implements Serializable {
 		}
 	}
 	
-	public static Pair<Problem, Double> readFromJsonFile(String fileName){
+	public static Entry<Problem, Double> readFromJsonFile(String fileName){
 		
 		Problem p = new Problem();
 		double percentObstacle = 0;
@@ -153,8 +154,8 @@ public class Problem implements Serializable {
 		}
 		// probably should've encapsulated the double inside p or p.graph, 
 		// but this would require a lot of changes to keep consistency
-		// or some deriving class  
-		return new Pair<Problem, Double>(p, percentObstacle);
+		// or some deriving class
+		return new AbstractMap.SimpleEntry<>(p, percentObstacle);
 	}
 
 	public static Problem readFromFile(String fileName){
